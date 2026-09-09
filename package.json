@@ -1,0 +1,13 @@
+{
+  "name": "t20-ai-assessment-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "T20 培训咨询机构 AI 业务落地诊断 - Railway API",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}
