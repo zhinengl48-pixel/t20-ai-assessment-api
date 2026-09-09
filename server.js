@@ -149,7 +149,7 @@ async function getExistingFields(token, appToken, tableId) {
       headers: { authorization: `Bearer ${token}` },
     });
     for (const field of data.data?.items || []) {
-      if (field.field_name) fields.set(field.field_name, field);
+      if (field.field_name) fields.set(field.field_name.trim(), field);
     }
     pageToken = data.data?.has_more ? data.data?.page_token || "" : "";
   } while (pageToken);
@@ -157,7 +157,7 @@ async function getExistingFields(token, appToken, tableId) {
 }
 
 function toFeishuFieldName(fieldName) {
-  return FIELD_NAME_MAP[fieldName] || fieldName;
+  return (FIELD_NAME_MAP[fieldName] || fieldName).trim();
 }
 
 function coerceFieldValue(value, field) {
