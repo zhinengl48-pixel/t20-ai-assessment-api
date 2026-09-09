@@ -29,6 +29,7 @@ const FIELD_NAME_MAP = {
   source_channel: "来源渠道",
   name: "姓名",
   company: "公司",
+  company_short_name: "公司简称",
   role: "职位",
   contact: "联系方式",
   business_type: "公司业务类型",
@@ -206,9 +207,27 @@ async function attachPdfToRecord(token, appToken, tableId, recordId, attachmentF
   });
 }
 
+async function createRecord(token, appToken, tableId, fields) {
+  const result = await feishuFetch(`/bitable/v1/apps/${appToken}/tables/${tableId}/records`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: JSON.stringify({ fields }),
+  });
+  return result.data?.record?.record_id || "";
+}
+
+async function updateRecord(token, appToken, tableId, recordId, fields) {
+  await feishuFetch(`/bitable/v1/apps/${appToken}/tables/${tableId}/records/${recordId}`, {
+    method: "PUT",
+    headers: { authorization: `Bearer ${token}` },
+    body: JSON.stringify({ fields }),
+  });
+  return recordId;
+}
+
 app.post("/api/submit", async (req, res) => {
   try {
-    const { fieldValues, pdfBase64, pdfFileName } = req.body || {};
+    const { fieldValues, pdfBase64, pdfFileName, recordId: existingRecordId } = req.body || {};
     if (!fieldValues || typeof fieldValues !== "object") {
       return res.status(400).json({ ok: false, error: "Invalid payload: fieldValues required" });
     }
@@ -238,13 +257,9 @@ app.post("/api/submit", async (req, res) => {
       });
     }
 
-    const createResult = await feishuFetch(`/bitable/v1/apps/${appToken}/tables/${tableId}/records`, {
-      method: "POST",
-      headers: { authorization: `Bearer ${token}` },
-      body: JSON.stringify({ fields: filteredFields }),
-    });
-
-    const recordId = createResult.data?.record?.record_id || "";
+    const recordId = existingRecordId
+      ? await updateRecord(token, appToken, tableId, existingRecordId, filteredFields)
+      : await createRecord(token, appToken, tableId, filteredFields);
     let pdfAttached = false;
     let pdfError = null;
 
